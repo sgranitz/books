@@ -1,0 +1,202 @@
+---
+title: "Basic Statistics by Wilcox"
+author: "Granitz, Stephan"
+date: "February 3, 2018"
+output: html_document
+---
+
+---  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(tidyverse)
+require(ggalt)
+```
+
+##### TOC
+.                               .  | .                                    .
+---------------------------------- | ---------------------------------------
+1 - Numerical Summaries of Content | 7 - Correlation & Regression
+2 - Graphical Summaries of Content | 8 - Comparing Two Groups
+3 - Probability                    | 9 - Comparing More Than Two Groups
+4 - Sampling Distributions         | 10- Multiple Comparisons
+5 - Estimation                     | 11- Categorical Data
+6 - Hypothesis Testing             | 12- Rank Based & Nonparametric Methods
+  
+#### USEFUL SYMBOLS
+.                               .  | .                                    .
+---------------------------------- | ---------------------------------------
+$\alpha$ - _alpha_ - probability of Type I error | $\nu$ - _nu_ - degrees of freedom
+$\beta$ - _beta_ - probability of Type II error | $\Omega$ - _Omega_ - odds ratio
+$\beta$~1~ - slope of regression line | $\rho$ - _rho_ - population correlation coefficient
+$\beta$~0~ - intercept of regression line | $\sigma$ - _sigma_ - population standard deviation
+$\delta$ - _delta_ - measure of effect size | $\phi$ - _phi_ - measure of association
+$\epsilon$ - _epsilon_ - residual / error term in ANOVA regression | $\chi$ - _chi_ - $\chi$^2^ chi-squared distribution
+$\theta$ - _theta_ - odds ratio or population median | $\Delta$ - _Delta_ - measure of change / effect size
+$\mu$ - _mu_ - population mean | $\Sigma$ - _Sigma_ - summation
+$\mu$~t~ - trimmed population mean | $\tau$ - _tau_ - Kendall's tau
+
+
+> Modern statistics provides a quantitative technology for empirical sciences. It is a logic and methodology for the measurement of uncertainty and for examination of the consequences of that uncertainty in the planning and interpretation of experimentation and observation  
+
+#### IMPORTANT WORKS
+.                           .  | .                                .
+------------------------------ | -----------------------------------
+1749-1827 Laplace, Simon | 1894-1981 Neyman, Jerzy
+1777-1855 Gauss, Carl | 1895-1980 Pearson, Egon
+1857-1936 Pearson, Karl | 1890-1962 Fisher, Ronald
+
+#### THREE FUNDAMENTAL COMPONENTS
+1. *Desgin* - the planning and carrying out of a study
+2. *Description* - the methods for summarizing data
+3. *Inference* - making predictions or generalizations about a population of individuals or things based on a sample of observations
+
+### 1. Numerical Summaries of Data
+"Descriptive Statistics"  
+  
+  
+Useful Symbols                     | Summation Notation
+---------------------------------- | ---------------------------------------
+$X$ $\rightarrow$ represents a random variable | $\sum_{i=1}^{n}X_{i}=X_{1}+X_{2}+...+X_{n}$
+$c$ $\rightarrow$ constant | sum all $X$ from $X_{i}$ to $X_{n}$
+$i$ $\rightarrow$ index | $\sum cX_{i}= c\sum X_{i}$
+$n$ $\rightarrow$ total number of observations | sum of all variables times a constant equals the constant times the sum of all variables
+  
+**Measures of location** (_measures of central tendency_) - single numerical quantity that reflects _typical_ observed value  
+  
+  Mean $\rightarrow$ $\overline{X} = \frac{1}{n}\sum x_{i}$  
+  _The mean can be sensitive to even one outlier_  
+    
+  Median $= \left\{\begin{matrix}
+n \rightarrow odd & M = X_{m} & m = \frac{(n+1)}{2} \\ 
+n \rightarrow even & M = \frac{(X_{m} + X_{m+1})}{2} & m = \frac{n}{2}
+\end{matrix}\right.$  
+  _The median is a **resistant** measure of location because it is insensitive to outliers_
+   
+**Measures of dispersion** (_measures of variation_) - reflects how spread out the data happens to be  
+  
+  Range $\rightarrow$ $X_{max}-X_{min}$  
+  
+  Variation $\rightarrow$ $s^{2} = \frac{1}{n-1}\sum (X_{i} - \overline{X})^{2}$  
+  
+  Standard Deviation $\rightarrow$ $s = \sqrt[]{s^{2}}$  
+   
+**Five number summary of data**  
+1. Lowest observed value $X_{min}$  
+2. $Q_{1}$ = lower quartile (median of bottom half)  
+3. Median (middle value, cuts data in half)  
+4. $Q_{3}$ = upper quartile (median of upper half)  
+5. Largest observed value $X_{max}$  
+   
+$IQR$ $\rightarrow$ interquartile range $= Q_{3} - Q_{1}$  
+    
+Outliers $= \left\{\begin{matrix}
+X < Q_{1} - IQR\\ 
+X > Q_{3} + IQR
+\end{matrix}\right.$  
+  
+  
+```{r numerical_summaries, echo=FALSE}
+# Example of Numerical Summaries
+n <- 300
+X <- rnorm(n, mean = 0, sd = 1)
+
+x_bar <- mean(X)
+five_num <- fivenum(X)
+label <- c("Min", "Q1", "Median", "Q3", "Max")
+med <- five_num[3]
+
+ggplot() + 
+  geom_point(aes(X, rep(3, n)), color="lightgrey", alpha=0.33, position = "jitter") +
+  geom_point(aes(five_num, rep(3, 5)), color="indianred", size=3) +
+  annotate("text", x = five_num, y = 2.75, label = label, color = "indianred", fontface = 2) +
+  geom_point(aes(x_bar, 3), color="purple", size=3, alpha=0.5) +
+  annotate("text", x = x_bar, y = 3.25, label = "Mean", color = "purple", fontface = 2) +
+  geom_line(aes(c(x_bar - sd(X), x_bar), 3.5), color = "blue") +
+  annotate("text", x = x_bar - sd(X) / 2, y = 3.65, label = "Standard Deviation", color = "blue") +
+  geom_line(aes(c(five_num[c(2,4)]), 2.5), color = "darkgreen") +
+  annotate("text", x = med, y = 2.4, label = "IQR", color = "darkgreen") +
+  geom_line(aes(c(five_num[c(1,5)]), 2.25), color = "purple") +
+  annotate("text", x = med, y = 2.1, label = "Range", color = "purple") +
+  ylim(1,4) + theme_bw() + labs(title = "Example of Numerical Summaries", x = "X", y = "") +
+  theme(axis.title.y = element_blank(),
+        axis.text.y  = element_blank(),
+        axis.ticks.y = element_blank())
+
+
+```
+
+
+### 2. Graphical Summaries of Data
+
+Notation                           | Meaning
+---------------------------------- | ---------------------------------------
+$fx$ | frequency, "value of $x$ occured $fx$ times"
+$max(fx)$ | mode of $x$
+$fx/n$ | relative frequency, plot of relative frequencies is called _empirical distribution_
+$\Sigma fx = n \rightarrow \frac{1}{n} \Sigma fx = 1$ | sum of relative frequencies is always 1
+$\bar{x} = \frac{1}{n} \Sigma xfx = \Sigma x\frac{fx}{n}$ | sample mean
+$s^2 = \frac{n}{n-1} \Sigma \frac{fx}{n}(x - \bar{X})^2$ | sample variance
+
+_Cumulative relative frequency distribution_ is the proportion of observations less than or equal to a given value  
+- for every $x$, some proportion of observed values will be $\leqslant x$ (denoted by $F(x)$)  
+- these proportions taken as a whole are the _empirical cumulative distribution function_  
+
+```{r rel_freq, echo=FALSE}
+freq <- data.frame(x=0:5, y=c(0.1, 0.2, 0.15, 0.39, 0.12, 0.04))
+
+as_tibble(freq) %>% print()
+
+ggplot(freq, aes(x, y)) + 
+  geom_lollipop(point.colour="steelblue", point.size=3) +
+  geom_line(aes(x, cumsum(y)), color="lightgrey") +
+  annotate(
+    "text", 
+    x = freq$x, 
+    y = cumsum(freq$y) + 0.05, 
+    label = as.character(cumsum(freq$y)), 
+    color = "grey"
+  ) +
+  annotate(
+    "text", 
+    x = max(freq$x) / 2 + 1, 
+    y = 0.7, 
+    label = "Cumulative relative \n frequency distribution", 
+    color = "grey"
+  ) +
+  annotate(
+    "text", 
+    x = freq$x, 
+    y = freq$y + 0.05, 
+    label = as.character(freq$y), 
+    color = "darkgreen"
+  ) +
+  annotate(
+    "text", 
+    x = freq$x[freq$y == max(freq$y)] + 0.25, 
+    y = max(freq$y), 
+    label = "mode", 
+    color = "purple"
+  ) +
+  theme_minimal()
+```
+
+_Histogram_ is similar to the relative frequency plot with the addition of *bins*  
+Bins group data into defined categories and then plot the corresponding frequencies  
+
+```{r hist, echo=FALSE}
+hist <- tibble(cat = c("0-0.5","0.5-1","1-1.5","1.5-2","2-2.5","2.5-3"), 
+               freq = c(10,20,18,12,3,2)) %>% 
+        mutate(rel_freq = round(freq/sum(freq), 2)) 
+
+print(hist)
+
+hist %>%
+  separate(cat, into = c("min", "max"), sep = "-") %>% 
+  mutate(min = as.numeric(min), max = as.numeric(max)) %>% 
+  ggplot() + 
+    geom_segment(aes(x = min, xend = min, y = 0, yend = freq)) +
+    geom_segment(aes(x = max, xend = max, y = 0, yend = freq)) +
+    geom_segment(aes(x = min, xend = max, y = 0, yend = 0)) +
+    geom_segment(aes(x = min, xend = max, y = freq, yend = freq))
+```
+
